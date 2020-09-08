@@ -26,20 +26,22 @@ $(document).ready(() => {
 
   // GETTING THE CITY LATITUDE AND LONGITUDE USING USERS INPUT
   function getSearch(city, state) {
-    const apiKey = "6kkUl9f91C5XxAWQvi59a4QnmpZMljcM";
-    const queryURL = `https://www.mapquestapi.com/geocoding/v1/address?key=${apiKey}&location=${city},${state}`;
     $.ajax({
-      url: queryURL,
-      method: "GET"
+      url: "/api/search/",
+      method: "GET",
+      data: {
+        city: city,
+        state: state
+      }
+    }).then(data => {
+      // console.log('getSearch results:\n',data[0].locations[0].latLng);
+      const lat = data[0].locations[0].latLng.lat;
+      const lon = data[0].locations[0].latLng.lng;
+      getRestaurants(lat, lon);
     })
-      .then(data => {
-        const lat = data.results[0].locations[0].latLng.lat;
-        const lon = data.results[0].locations[0].latLng.lng;
-        getRestaurants(lat, lon);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+    .catch(error => {
+      console.error(error);
+    });
   }
 
   // CURRENTLY NOT USING, BUT POSSIBLY USE FOR FUTRE
@@ -56,23 +58,18 @@ $(document).ready(() => {
 
   // GETTING THE ARRAYS OF RESTAURANTS USING AXIOS.
   function getRestaurants(lat, lon) {
-    axios({
+    $.ajax({
+      url: "/api/zomato/search/",
       method: "GET",
-      url: "https://developers.zomato.com/api/v2.1/search",
-      headers: {
-        "content-type": "application/octet-stream",
-        user_key: "723c59fca106ce1599f751dc65a0c43f",
-        useQueryString: true,
-      },
-      params: {
-        lat: `${lat}`,
-        lon: `${lon}`,
-        sort: "real_distance"
-      },
+      data: {
+        lat: lat,
+        lon: lon
+      }
     })
       .then(response => {
-        displaySearch(response.data);
-        getPinnedMap(response.data);
+        // console.log(response);
+        displaySearch(response);
+        getPinnedMap(response);
       })
       .catch(error => {
         console.log(error);
